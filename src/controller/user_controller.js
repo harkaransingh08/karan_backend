@@ -1,32 +1,64 @@
-import user_model from '../model/user_model.js'
-import { userOtpsend } from '../mail/all_mailformate.js'
+import User from "../model/user_model.js";
+import { userOtpsend } from "../mail/all_mailformate.js";
+
 export const create_user = async (req, res) => {
-    try {
-        const data = req.body
+  try {
+    const { email, password } = req.body;
 
-        const { email } = data
+    const randomOtp = Math.floor(1000 + Math.random() * 9000);
+    const expiryTime = Date.now() + 5 * 60 * 1000;
 
-        const randomOtp = Math.floor(1000 + Math.random() * 9000)
-        const expiryTime = Date.now() + 5 * 60 * 1000;
+    // check existing user
+    const checkUser = await User.findOne({ email });
 
-        const checkUser = await user_model.findOneAndUpdate({ email: email },
-            { $set: { 'user.userOtp': randomOtp, 'user.otpExpire': expiryTime } })
+    if (checkUser) {
 
-        if (checkUser) {
-            const { isVerify, isDelete } = checkUser.user
+      if (checkUser.isDeleted) {
+        return res.status(200).json({
+          status: true,
+          msg: "Your account is deleted",
+        });
+      }
 
-            if (isDelete) return res.status(200).send({ status: true, msg: "Your Account is Delete" })
-            if (isVerify) return res.status(200).send({ status: true, msg: "accosunt already verify pls login..." })
-            if (!isVerify) {
-                userOtpsend(checkUser.email, checkUser.name, randomOtp)
-                return res.status(200).send({ status: true, msg: "resend otp send ..." })
-            }
-        }
+      if (checkUser.isVerified) {
+        return res.status(200).json({
+          status: true,
+          msg: "Account already verified, please login",
+        });
+      }
 
-        const DB = await user_model.create(data)
-        userOtpsend(data.email, data.name, randomOtp)
+      // resend OTP
+      checkUser.userOtp = randomOtp;
+      checkUser.otpExpire = expiryTime;
+      await checkUser.save();
 
-        return res.status(201).send({ status: true, msg: "SucessFull Create User", DB })
+      userOtpsend(checkUser.email, randomOtp);
+
+      return res.status(200).json({
+        status: true,
+        msg: "OTP resent successfully",
+      });
     }
-    catch (err) { return res.status(500).send({ status: false, msg: err.message }) }
-}  
+
+    // create new user
+    const newUser = await User.create({
+      ...req.body,
+      userOtp: randomOtp,
+      otpExpire: expiryTime,
+    });
+
+    userOtpsend(newUser.email, randomOtp);
+
+    return res.status(201).json({
+      status: true,
+      msg: "User created successfully",
+      userId: newUser._id,
+    });
+
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      msg: err.message,
+    });
+  }
+};

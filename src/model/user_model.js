@@ -1,26 +1,67 @@
-import mongoose from 'mongoose'
-import bcrypt from 'bcrypt'
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
-const userSchema = new mongoose.Schema ({
+const validEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    name : {
-        type:String , Trim:true ,  unique:true , required:[true,'Email is Required'],lowercase: true,
-        validate: [validwmail, 'Invalid Email']
+const validPassword = (password) =>
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(password);
+
+const userSchema = new mongoose.Schema(
+  {
+   name: {
+  type: String,
+  trim: true,
+  default: "User"
+},
+
+
+    email: {
+      type: String,
+      trim: true,
+      unique: true,
+      required: true,
+      lowercase: true,
+      validate: [validEmail, "Invalid Email"],
     },
-    password:{
-        type: string , trim : true , required:[true,'Password is required'],
-        validate : [validpassword , 'Invalid Password give one UpperCase, one LowerCase, one Number and one Special Character']
-    },
-    user:{
-        isDelete:{type:Boolean , default:false},
-        otpExpire:{type:Number , default:0},
-        isVerify:{type:Boolean , default:false},
-        userOtp:{type:Number , default:null, trim : true},
-    },
-})
 
-userSchema.pre('save',async function (){
-   this.password = await bcrypt.hash(this.password, 10)
-})
+    password: {
+      type: String,
+      required: true,
+      validate: [
+        validPassword,
+        "Password must contain uppercase, lowercase, number & special character",
+      ],
+    },
 
-export default mongoose.model('usedsrs', userSchema)
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    userOtp: {
+      type: Number,
+      default: null,
+    },
+
+    otpExpire: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
+
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
+  this.password = await bcrypt.hash(this.password, 10);
+});
+
+
+export default mongoose.model("User", userSchema);

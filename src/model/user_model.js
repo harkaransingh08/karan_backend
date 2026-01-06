@@ -11,8 +11,10 @@ const userSchema = new mongoose.Schema(
   {
    name: {
   type: String,
-  trim: true,
-  default: "User"
+    trim: true,  
+  required: true,
+  default: "User",
+  set: v => v === "" ? "User" : v
 },
 
 

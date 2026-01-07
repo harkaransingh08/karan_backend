@@ -1,10 +1,13 @@
 import user_model from '../model/user_model.js'
 import { userOtpsend } from '../mail/all_mailformate.js'
 import { error } from '../error/errorHandling.js'
+import {uploadProfileImg} from '../img/upload.js'
 
 export const create_user = async (req, res) => {
   try {
     const data = req.body
+    const file = req.file;
+    console.log(file)
     const { email } = data
 
     const randomOtp = Math.floor(1000 + Math.random() * 9000)
@@ -46,7 +49,7 @@ export const create_user = async (req, res) => {
         msg: "Resend OTP sent"
       })
     }
-
+    // uploadProfileImg(file.path)
     // NEW USER
     data.user = {
       userOtp: randomOtp,
@@ -54,15 +57,18 @@ export const create_user = async (req, res) => {
       isVerify: false,
       isDelete: false
     }
-
+    if(file){
+      data.profileImage = await uploadProfileImg(file.path)
+    }
     const DB = await user_model.create(data)
-    userOtpsend(DB.email, DB.name, randomOtp)
+
 
     const UserDB = {
       name: DB.name,
-      email: DB.email
+      email: DB.email,
+      profileImage:DB.profileImage
     }
-
+userOtpsend(DB.email, DB.name, randomOtp)
     return res.status(201).send({
       status: true,
       msg: "Successfully created user",

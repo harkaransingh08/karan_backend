@@ -9,13 +9,15 @@ const validPassword = (password) =>
 
 const userSchema = new mongoose.Schema(
   {
-   name: {
-  type: String,
-    trim: true,  
-  required: true,
-  default: "User",
-  set: v => v === "" ? "User" : v
-},
+    name: {
+      type: String,
+      trim: true,
+      required: true,
+      default: "User",
+      set: v => v === "" ? "User" : v
+    },
+
+    profileImage:{type:Object,require:false},
 
 
     email: {

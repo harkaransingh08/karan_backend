@@ -2,7 +2,7 @@ export const validName = (name) => {
     const nameRe = /^[A-Za-z ]{2,50}$/;
     return nameRe.test(name)
 }
-export const validemail = (email) => {
+export const validwmail = (email) => {
     const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
     return emailRe.test(email)
 

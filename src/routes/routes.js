@@ -1,11 +1,11 @@
-import express from 'express'
-import multer from 'multer'
-
-import { create_user } from '../controller/user_controller.js'
-const upload = multer({ storage: multer.diskStorage({}) })
-
+import express from 'express';
+import { create_user, user_verify_otp, user_login } from '../controller/user_controller.js'
 const routes = express.Router()
 
 
-routes.post('/create_user', upload.single('profileImage'), create_user)
+
+routes.post('/create_user', create_user)
+routes.post('/user_verify_otp/:id', user_verify_otp)
+routes.post('/user_login', user_login)
+
 export default routes

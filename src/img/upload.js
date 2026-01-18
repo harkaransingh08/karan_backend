@@ -31,4 +31,4 @@ export const uploadProfileImg = async (filePath) => {
         console.error('Image upload failed:', err)
         throw err
     }
-}
+}   
